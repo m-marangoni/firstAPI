@@ -1,6 +1,10 @@
 const express = require('express');
 const users = require('./users.js');
 const app = express();
+const Joi = require('joi');
+
+
+
 
 app.use(express.json());
 
@@ -14,9 +18,13 @@ app.get('/api/users/:id', (req, res) => {
     res.send(foundUser);
 }); 
 
+ 
+
+
 app.post('/api/users', (req, res) => {
+    const id = Math.max(...users.map(user => user.id));
     const newUser = {
-        id: users.length + 1,
+        id,
         name: req.body.name,
         email: req.body.email
     };
@@ -29,15 +37,39 @@ app.put('/api/users/:id', (req, res) => {
     if (!updateUser) {
         return res.status(404).send('deu merda');
     }
-    if (!req.body.name || !req.body.email) {
-        return res.status(400).send('precisa incluir nome e email!');
+        //usando Joi pra validar
+  const schema = {
+    name: Joi.string().min(3).required(),
+    email: Joi.string().min(6).required(),
+}
+
+const validation = Joi.validate(req.body, schema);
+
+    if (validation.error) {
+        return res.status(400).send(validation,error.details[0].message);
     }
+    
+ 
+    // validação basica sem joi
+    //if (!req.body.name || !req.body.email) {
+    //    return res.status(400).send('precisa incluir nome e email!');
+    //}
 
      updateUser.name = req.body.name;
      updateUser.email = req.body.email;
 
    res.send(updateUser);
 }); 
-   
+
+app.delete('/api/users/:id',  (req, res) => {
+    const deleteUser = users.find(user => user.id === parseInt(req.params.id));
+    const index = users.indexOf(deleteUser);
+
+    if (!deleteUser) {
+        return res.status(404).send('deu merda');
+    }
+    users.splice(index, 1);
+    res.send('usuário excluído com sucesso!', deleteUser);
+});
 
 app.listen(3000, () => console.log('ouvindo na porta 3000...'));
