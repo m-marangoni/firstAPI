@@ -22,7 +22,7 @@ app.get('/api/users/:id', (req, res) => {
 
 
 app.post('/api/users', (req, res) => {
-    const id = Math.max(...users.map(user => user.id));
+    const id = Math.max(...users.map(user => user.id)) + 1;
     const newUser = {
         id,
         name: req.body.name,
